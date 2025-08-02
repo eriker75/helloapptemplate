@@ -16,7 +16,9 @@ export interface Profile {
   birth_date: string | null;
   gender: number | null;
   interested_in: any | null; // jsonb
-  avatar: string | null;
+  main_photo: string | null; // main profile photo
+  photos: string[]; // secondary photos (1-4)
+  avatar: string | null; // deprecated, use main_photo
   address: string | null;
   preferences: any | null; // jsonb
   last_online: string | null;
@@ -40,7 +42,13 @@ let mockProfiles: Profile[] = [
     birth_date: "1995-06-15",
     gender: 0,
     interested_in: "1",
-    avatar: "",
+    main_photo: "assets/images/vertical/istockphoto1.jpg",
+    photos: [
+      "assets/images/vertical/istockphoto1.jpg",
+      "assets/images/vertical/istockphoto2.jpg",
+      "assets/images/vertical/istockphoto3.jpg"
+    ],
+    avatar: "", // deprecated
     address: "123 Main St",
     preferences: null,
     last_online: null,
@@ -61,6 +69,10 @@ let mockProfiles: Profile[] = [
     birth_date: "1992-03-22",
     gender: 1,
     interested_in: "0",
+    main_photo: "assets/images/vertical/istockphoto2.jpg",
+    photos: [
+      "assets/images/vertical/istockphoto2.jpg"
+    ],
     avatar: "",
     address: "456 Side Ave",
     preferences: null,
@@ -82,6 +94,11 @@ let mockProfiles: Profile[] = [
     birth_date: "1990-11-10",
     gender: 1,
     interested_in: "0",
+    main_photo: "assets/images/vertical/istockphoto3.jpg",
+    photos: [
+      "assets/images/vertical/istockphoto3.jpg",
+      "assets/images/vertical/istockphoto4.jpg"
+    ],
     avatar: "",
     address: "789 North Ave",
     preferences: null,
@@ -103,6 +120,13 @@ let mockProfiles: Profile[] = [
     birth_date: "1988-04-05",
     gender: 0,
     interested_in: "1",
+    main_photo: "assets/images/vertical/istockphoto4.jpg",
+    photos: [
+      "assets/images/vertical/istockphoto4.jpg",
+      "assets/images/vertical/istockphoto1.jpg",
+      "assets/images/vertical/istockphoto2.jpg",
+      "assets/images/vertical/istockphoto3.jpg"
+    ],
     avatar: "",
     address: "1010 South Blvd",
     preferences: null,
@@ -124,6 +148,11 @@ let mockProfiles: Profile[] = [
     birth_date: "1997-08-19",
     gender: 1,
     interested_in: "0",
+    main_photo: "assets/images/vertical/istockphoto2.jpg",
+    photos: [
+      "assets/images/vertical/istockphoto2.jpg",
+      "assets/images/vertical/istockphoto5.jpg"
+    ],
     avatar: "",
     address: "2020 Art St",
     preferences: null,
@@ -145,6 +174,10 @@ let mockProfiles: Profile[] = [
     birth_date: "1993-02-14",
     gender: 0,
     interested_in: "1",
+    main_photo: "assets/images/vertical/istockphoto5.jpg",
+    photos: [
+      "assets/images/vertical/istockphoto5.jpg"
+    ],
     avatar: "",
     address: "3030 Cycle Rd",
     preferences: null,
@@ -166,6 +199,11 @@ let mockProfiles: Profile[] = [
     birth_date: "1991-12-01",
     gender: 1,
     interested_in: "0",
+    main_photo: "assets/images/vertical/istockphoto3.jpg",
+    photos: [
+      "assets/images/vertical/istockphoto3.jpg",
+      "assets/images/vertical/istockphoto4.jpg"
+    ],
     avatar: "",
     address: "4040 Book Ln",
     preferences: null,
@@ -187,6 +225,10 @@ let mockProfiles: Profile[] = [
     birth_date: "1996-06-30",
     gender: 0,
     interested_in: "1",
+    main_photo: "assets/images/vertical/istockphoto4.jpg",
+    photos: [
+      "assets/images/vertical/istockphoto4.jpg"
+    ],
     avatar: "",
     address: "5050 Beach Dr",
     preferences: null,
@@ -208,6 +250,11 @@ let mockProfiles: Profile[] = [
     birth_date: "1994-09-23",
     gender: 1,
     interested_in: "0",
+    main_photo: "assets/images/vertical/istockphoto1.jpg",
+    photos: [
+      "assets/images/vertical/istockphoto1.jpg",
+      "assets/images/vertical/istockphoto2.jpg"
+    ],
     avatar: "",
     address: "6060 Food Ct",
     preferences: null,
@@ -229,6 +276,12 @@ let mockProfiles: Profile[] = [
     birth_date: "1989-07-12",
     gender: 0,
     interested_in: "1",
+    main_photo: "assets/images/vertical/istockphoto2.jpg",
+    photos: [
+      "assets/images/vertical/istockphoto2.jpg",
+      "assets/images/vertical/istockphoto3.jpg",
+      "assets/images/vertical/istockphoto4.jpg"
+    ],
     avatar: "",
     address: "7070 Sky Ave",
     preferences: null,
@@ -250,6 +303,10 @@ let mockProfiles: Profile[] = [
     birth_date: "1998-03-17",
     gender: 1,
     interested_in: "0",
+    main_photo: "assets/images/vertical/istockphoto3.jpg",
+    photos: [
+      "assets/images/vertical/istockphoto3.jpg"
+    ],
     avatar: "",
     address: "8080 Dance St",
     preferences: null,
@@ -263,6 +320,9 @@ let mockProfiles: Profile[] = [
     longitude: -67.0,
   },
 ];
+
+// --- Export mockProfiles for UI mock/testing only ---
+export { mockProfiles };
 
 // --- Helper: Haversine distance ---
 function haversine(lat1: number, lon1: number, lat2: number, lon2: number) {

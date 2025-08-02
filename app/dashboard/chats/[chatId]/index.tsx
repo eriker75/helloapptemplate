@@ -273,6 +273,9 @@ const ChatScreen = () => {
   const { userProfile } = useAuthUserProfile();
   const userId = userProfile?.id;
   const chats = useChatStore(s => s.chats);
+  // Debug logs
+  console.log("ChatScreen chatId:", chatId);
+  console.log("ChatScreen chats:", chats);
 
   // Typing indicator logic
   const {

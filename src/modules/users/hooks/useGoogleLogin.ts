@@ -23,7 +23,7 @@ const DEMO_USER_PROFILE = {
   preferences: null,
   last_online: null,
   location: null,
-  is_onboarded: 0,
+  is_onboarded: 1,
   status: 1,
   latitude: 10.5,
   longitude: -66.9,

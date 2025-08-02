@@ -11,6 +11,7 @@ import { SplashScreen, Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React, { useEffect } from "react";
 import { useColorScheme } from "react-native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "react-native-reanimated";
 
 if (typeof structuredClone === "undefined") {
@@ -47,44 +48,46 @@ export default function RootLayout() {
   }
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <GluestackUIProvider mode={colorScheme === "dark" ? "dark" : "light"}>
-        <ThemeProvider
-          value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
-        >
-          <Stack
-            screenOptions={{
-              headerShown: false,
-              animation: "default",
-            }}
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <QueryClientProvider client={queryClient}>
+        <GluestackUIProvider mode={colorScheme === "dark" ? "dark" : "light"}>
+          <ThemeProvider
+            value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
           >
-            <Stack.Screen name="index" />
-            <Stack.Screen
-              name="onboarding"
-              options={{
+            <Stack
+              screenOptions={{
                 headerShown: false,
-                presentation: "modal",
+                animation: "default",
               }}
-            />
-            <Stack.Screen
-              name="login"
-              options={{
-                title: "Iniciar sesión",
-                headerShown: false,
-                headerBackTitle: "Atrás",
-              }}
-            />
-            <Stack.Screen
-              name="dashboard"
-              options={{
-                headerShown: false,
-                animation: "fade",
-              }}
-            />
-          </Stack>
-          <StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
-        </ThemeProvider>
-      </GluestackUIProvider>
-    </QueryClientProvider>
+            >
+              <Stack.Screen name="index" />
+              <Stack.Screen
+                name="onboarding"
+                options={{
+                  headerShown: false,
+                  presentation: "modal",
+                }}
+              />
+              <Stack.Screen
+                name="login"
+                options={{
+                  title: "Iniciar sesión",
+                  headerShown: false,
+                  headerBackTitle: "Atrás",
+                }}
+              />
+              <Stack.Screen
+                name="dashboard"
+                options={{
+                  headerShown: false,
+                  animation: "fade",
+                }}
+              />
+            </Stack>
+            <StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
+          </ThemeProvider>
+        </GluestackUIProvider>
+      </QueryClientProvider>
+    </GestureHandlerRootView>
   );
 }
