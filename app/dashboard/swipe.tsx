@@ -1,19 +1,30 @@
+"use client";
+
 import { Text } from "@/components/ui";
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import { mockProfiles } from "@/src/modules/users/repositories/profile.repository";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import React, { useRef, useState } from "react";
+import { useRef, useState } from "react";
 import {
-  Animated,
   Dimensions,
   Image,
-  PanResponder,
   Pressable,
+  ScrollView,
   StyleSheet,
   View,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
 } from "react-native";
-import Carousel from "react-native-reanimated-carousel";
+import Reanimated, {
+  interpolate,
+  interpolateColor,
+  runOnJS,
+  useAnimatedProps,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 // Helper to require images from string paths (for mock assets)
@@ -37,6 +48,7 @@ function requireImage(path: string) {
 }
 
 const { width, height } = Dimensions.get("window");
+
 const GENDER_TEXT: Record<number, string> = {
   0: "Mujer",
   1: "Hombre",
@@ -46,104 +58,50 @@ const GENDER_TEXT: Record<number, string> = {
 const SwipeScreen = () => {
   const [profileIndex, setProfileIndex] = useState(0);
   const [photoIndex, setPhotoIndex] = useState(0);
-  const [likeAnim] = useState(new Animated.Value(0));
-  const [passAnim] = useState(new Animated.Value(0));
-  const [cardAnim] = useState(new Animated.Value(0));
-  const [cardOpacity] = useState(new Animated.Value(1));
-  const carouselRef = useRef<any>(null);
+
+  // Reanimated values for Like/Pass button animation
+  const likeAnim = useSharedValue(0);
+  const passAnim = useSharedValue(0);
+
+  const scrollViewRef = useRef<ScrollView>(null);
   const router = useRouter();
 
-  // Get current profile and its images (main + secondary, no duplicates, no empty)
+  // Get current profile and its images
   const currentProfile = mockProfiles[profileIndex % mockProfiles.length];
-  const images = Array.from(
-    new Set(
-      [
-        ...(currentProfile.main_photo ? [currentProfile.main_photo] : []),
-        ...(currentProfile.photos || []),
-      ].filter(Boolean)
-    )
-  );
+  const images =
+    Array.isArray(currentProfile.photos) && currentProfile.photos.length > 0
+      ? currentProfile.photos
+      : [];
 
-  // Pan responder for swipe gestures
-  const panResponder = PanResponder.create({
-    onMoveShouldSetPanResponder: (evt, gestureState) => {
-      return Math.abs(gestureState.dx) > 20 || Math.abs(gestureState.dy) > 20;
-    },
-    onPanResponderGrant: () => {
-      cardAnim.setOffset((cardAnim as any).__getValue());
-    },
-    onPanResponderMove: (evt, gestureState) => {
-      cardAnim.setValue(gestureState.dx);
-      // Update opacity based on swipe distance
-      const progress = Math.abs(gestureState.dx) / (width * 0.5);
-      cardOpacity.setValue(Math.max(0.7, 1 - progress * 0.3));
-    },
-    onPanResponderRelease: (evt, gestureState) => {
-      cardAnim.flattenOffset();
-      const { dx, vx } = gestureState;
-      if (Math.abs(dx) > width * 0.25 || Math.abs(vx) > 0.5) {
-        // Swipe threshold reached
-        if (dx > 0) {
-          // Swipe right - Like
-          triggerLike();
-        } else {
-          // Swipe left - Pass
-          triggerPass();
-        }
-      } else {
-        // Return to center
-        Animated.parallel([
-          Animated.spring(cardAnim, {
-            toValue: 0,
-            useNativeDriver: false,
-            tension: 100,
-            friction: 8,
-          }),
-          Animated.spring(cardOpacity, {
-            toValue: 1,
-            useNativeDriver: false,
-          }),
-        ]).start();
-      }
-    },
-  });
+  // Handle scroll events to update photo index
+  const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const contentOffsetX = event.nativeEvent.contentOffset.x;
+    const currentIndex = Math.round(contentOffsetX / width);
+    setPhotoIndex(currentIndex);
+  };
 
-  // Animations for like/pass - simplified without color interpolation
+  // Animations for like/pass
   const triggerLike = () => {
-    Animated.sequence([
-      Animated.timing(likeAnim, {
-        toValue: 1,
-        duration: 150,
-        useNativeDriver: false,
-      }),
-      Animated.timing(likeAnim, {
-        toValue: 0,
-        duration: 150,
-        useNativeDriver: false,
-      }),
-    ]).start(() => {
-      setTimeout(() => {
-        goNextProfile();
-      }, 100);
+    likeAnim.value = withTiming(1, { duration: 150 }, (finished) => {
+      if (finished) {
+        likeAnim.value = withTiming(0, { duration: 150 }, (finished2) => {
+          if (finished2) {
+            runOnJS(goNextProfile)();
+          }
+        });
+      }
     });
   };
 
   const triggerPass = () => {
-    Animated.sequence([
-      Animated.timing(passAnim, {
-        toValue: 1,
-        duration: 150,
-        useNativeDriver: false,
-      }),
-      Animated.timing(passAnim, {
-        toValue: 0,
-        duration: 150,
-        useNativeDriver: false,
-      }),
-    ]).start(() => {
-      setTimeout(() => {
-        goNextProfile();
-      }, 100);
+    passAnim.value = withTiming(1, { duration: 150 }, (finished) => {
+      if (finished) {
+        passAnim.value = withTiming(0, { duration: 150 }, (finished2) => {
+          if (finished2) {
+            runOnJS(goNextProfile)();
+          }
+        });
+      }
     });
   };
 
@@ -151,10 +109,9 @@ const SwipeScreen = () => {
   const goNextProfile = () => {
     setProfileIndex((prev) => (prev + 1) % mockProfiles.length);
     setPhotoIndex(0);
-    cardAnim.setValue(0);
-    cardOpacity.setValue(1);
-    if (carouselRef.current) {
-      carouselRef.current.scrollTo({ index: 0, animated: false });
+    // Reset scroll position
+    if (scrollViewRef.current) {
+      scrollViewRef.current.scrollTo({ x: 0, animated: false });
     }
   };
 
@@ -181,54 +138,41 @@ const SwipeScreen = () => {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#000" }}>
-      <Animated.View
-        style={[
-          styles.cardContainer,
-          {
-            transform: [
-              { translateX: cardAnim },
-              {
-                rotate: cardAnim.interpolate({
-                  inputRange: [-width, 0, width],
-                  outputRange: ["-10deg", "0deg", "10deg"],
-                  extrapolate: "clamp",
-                }),
-              },
-            ],
-            opacity: cardOpacity,
-          },
-        ]}
-        {...panResponder.panHandlers}
-      >
-        {/* Background carousel image - Fixed */}
-        <View style={styles.imageContainer}>
-          {images.length > 0 ? (
-            <Carousel
-              ref={carouselRef}
-              width={width}
-              height={height}
-              data={images}
-              scrollAnimationDuration={400}
-              onSnapToItem={setPhotoIndex}
-              renderItem={({ item }) => (
+      <View style={styles.cardContainer}>
+        {/* Image ScrollView - Main scrollable content */}
+        {images.length > 0 ? (
+          <ScrollView
+            ref={scrollViewRef}
+            horizontal
+            pagingEnabled
+            showsHorizontalScrollIndicator={false}
+            onScroll={handleScroll}
+            scrollEventThrottle={16}
+            style={styles.scrollView}
+            contentContainerStyle={styles.scrollViewContent}
+          >
+            {images.map((imageUri, index) => (
+              <View key={index} style={styles.imageWrapper}>
                 <Image
-                  source={requireImage(item)}
+                  source={requireImage(imageUri)}
                   style={styles.image}
                   resizeMode="cover"
                 />
-              )}
-              loop={false}
-            />
-          ) : (
+                {/* Overlay per image */}
+                <View style={styles.gradientOverlay} />
+              </View>
+            ))}
+          </ScrollView>
+        ) : (
+          <View style={styles.imageWrapper}>
             <Image
               source={require("@/assets/images/avatar-placeholder.png")}
               style={styles.image}
               resizeMode="cover"
             />
-          )}
-          {/* Overlay: dark gradient for readability */}
-          <View style={styles.gradientOverlay} />
-        </View>
+            <View style={styles.gradientOverlay} />
+          </View>
+        )}
 
         {/* Top bar */}
         <View style={styles.topBar}>
@@ -246,7 +190,7 @@ const SwipeScreen = () => {
           </Pressable>
         </View>
 
-        {/* Carousel dots */}
+        {/* Dots indicator */}
         {images.length > 1 && (
           <View style={styles.dotsContainer}>
             {images.map((_, i) => (
@@ -274,34 +218,21 @@ const SwipeScreen = () => {
           </Text>
           {bioExcerpt && <Text style={styles.bioExcerpt}>"{bioExcerpt}"</Text>}
         </View>
-
-        {/* Blue animation overlay for buttons */}
-        <Animated.View
-          style={[
-            styles.blueAnimationOverlay,
-            {
-              opacity: Animated.add(likeAnim, passAnim),
-            },
-          ]}
-        />
-      </Animated.View>
+      </View>
 
       {/* Bottom action buttons */}
       <View style={styles.bottomNav}>
         {/* Pass (X) */}
-        <Animated.View
+        <Reanimated.View
           style={[
             styles.actionButton,
-            {
+            useAnimatedStyle(() => ({
               transform: [
                 {
-                  scale: passAnim.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [1, 1.1],
-                  }),
+                  scale: interpolate(passAnim.value, [0, 1], [1, 1.1]),
                 },
               ],
-            },
+            })),
           ]}
         >
           <Pressable
@@ -309,9 +240,15 @@ const SwipeScreen = () => {
             style={styles.iconPressable}
             accessibilityLabel="Pasar"
           >
-            <MaterialIcons name="close" size={36} color="#fff" />
+            <ReanimatedIcon
+              name="close"
+              size={36}
+              animatedColor={passAnim}
+              baseColor="#fff"
+              activeColor="#5BC6EA"
+            />
           </Pressable>
-        </Animated.View>
+        </Reanimated.View>
 
         {/* View profile */}
         <Pressable
@@ -323,19 +260,16 @@ const SwipeScreen = () => {
         </Pressable>
 
         {/* Like (Heart) */}
-        <Animated.View
+        <Reanimated.View
           style={[
             styles.actionButton,
-            {
+            useAnimatedStyle(() => ({
               transform: [
                 {
-                  scale: likeAnim.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [1, 1.1],
-                  }),
+                  scale: interpolate(likeAnim.value, [0, 1], [1, 1.1]),
                 },
               ],
-            },
+            })),
           ]}
         >
           <Pressable
@@ -343,11 +277,56 @@ const SwipeScreen = () => {
             style={styles.iconPressable}
             accessibilityLabel="Me gusta"
           >
-            <MaterialIcons name="favorite" size={32} color="#fff" />
+            <ReanimatedIcon
+              name="favorite"
+              size={32}
+              animatedColor={likeAnim}
+              baseColor="#fff"
+              activeColor="#5BC6EA"
+            />
           </Pressable>
-        </Animated.View>
+        </Reanimated.View>
       </View>
     </SafeAreaView>
+  );
+};
+
+/**
+ * Animated MaterialIcons with color interpolation using animatedProps.
+ */
+const AnimatedMaterialIcons = Reanimated.createAnimatedComponent(MaterialIcons);
+
+const ReanimatedIcon = ({
+  name,
+  size,
+  animatedColor,
+  baseColor,
+  activeColor,
+}: {
+  name: string;
+  size: number;
+  animatedColor: any; // SharedValue<number>
+  baseColor: string;
+  activeColor: string;
+}) => {
+  const animatedProps = useAnimatedProps(() => {
+    return {
+      color: interpolateColor(
+        animatedColor.value,
+        [0, 1],
+        [baseColor, activeColor]
+      ),
+    };
+  });
+
+  // @ts-ignore
+  return (
+    <AnimatedMaterialIcons
+      name={name as any}
+      size={size}
+      animatedProps={animatedProps}
+      color={baseColor}
+    />
   );
 };
 
@@ -356,22 +335,25 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     zIndex: 1,
   },
-  imageContainer: {
+  scrollView: {
     ...StyleSheet.absoluteFillObject,
-    zIndex: 1,
+    zIndex: 1, // Base layer for scrolling
+  },
+  scrollViewContent: {
+    // ScrollView content doesn't need specific styling
+  },
+  imageWrapper: {
+    width: width,
+    height: height,
+    position: "relative",
   },
   image: {
-    width: "100%",
-    height: "100%",
+    width: width,
+    height: height,
   },
   gradientOverlay: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: "rgba(0,0,0,0.25)",
-  },
-  blueAnimationOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(91,198,234,0.1)",
-    zIndex: 2,
   },
   topBar: {
     position: "absolute",
@@ -379,12 +361,13 @@ const styles = StyleSheet.create({
     left: 0,
     width: "100%",
     height: 90,
-    zIndex: 3,
+    zIndex: 10, // Higher than scroll
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 18,
     paddingTop: 30,
+    pointerEvents: "box-none", // Allow touches to pass through empty areas
   },
   leftSpace: {
     width: 38,
@@ -411,19 +394,21 @@ const styles = StyleSheet.create({
   },
   dotsContainer: {
     position: "absolute",
-    bottom: 170,
+    top: 120, // Below the top bar
     left: 0,
-    width: "100%",
+    right: 0,
     flexDirection: "row",
     justifyContent: "center",
-    zIndex: 4,
-    gap: 8,
+    alignItems: "center",
+    zIndex: 5, // Above images, below top bar
+    paddingHorizontal: 20,
+    pointerEvents: "none", // Don't block scroll touches
   },
   dot: {
     width: 8,
     height: 8,
     borderRadius: 4,
-    marginHorizontal: 2,
+    marginHorizontal: 4,
   },
   dotActive: {
     backgroundColor: "#fff",
@@ -438,9 +423,10 @@ const styles = StyleSheet.create({
     bottom: 110,
     left: 0,
     width: "100%",
-    zIndex: 5,
+    zIndex: 5, // Above images, below buttons
     alignItems: "center",
     paddingHorizontal: 24,
+    pointerEvents: "none", // Don't block scroll touches
   },
   name: {
     color: "#fff",
@@ -481,8 +467,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-end",
-    zIndex: 6,
+    zIndex: 10, // Highest priority for buttons
     paddingHorizontal: 32,
+    pointerEvents: "box-none", // Allow touches to pass through empty areas
   },
   actionButton: {
     width: 64,
