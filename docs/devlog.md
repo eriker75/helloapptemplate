@@ -53,3 +53,21 @@
   - Fully documented and reusable for other range selection needs.
 - Documented the task and plan in `docs/2025-08-04-range-slider-onboarding.md`.
 - Ready for integration in the onboarding form (`basicinfo.tsx`).
+
+## 2025-08-04 (Onboarding Backend Integration)
+
+- Implemented full onboarding submission flow to backend:
+  - Created repository (`src/modules/onboarding/repositories/onboarding.repository.ts`) using axios and `api.ts` to POST onboarding data as `multipart/form-data`.
+  - Created service (`src/modules/onboarding/services/onboarding.service.ts`) to map store state to backend DTO, including location and image handling.
+  - Created hook (`src/modules/onboarding/hooks/useSubmitOnboarding.ts`) to connect the service with the onboarding store and expose a submit function.
+  - Integrated the hook in the location onboarding view (`app/onboarding/location.tsx`) to trigger backend submission after the user configures their location (final onboarding step).
+  - Ensured all data is mapped and transformed as required by the backend interface.
+- See detailed plan and notes in `docs/2025-08-04-onboarding-submit-flow.md`.
+
+## 2025-08-04 (Onboarding Submit Bugfix: Content-Type mismatch)
+
+- Fixed a critical bug where onboarding submission failed with `multipart != application/x-www-form-urlencoded` error.
+  - Root cause: The POST request in `onboarding.repository.ts` was explicitly setting the `Content-Type` header, which caused Axios to send the wrong type (`application/x-www-form-urlencoded`) instead of `multipart/form-data`.
+  - Solution: Removed the explicit `Content-Type` header and let the Axios interceptor handle FormData, allowing Axios to set the correct boundary and content type.
+  - Result: Onboarding submission with images now works as expected in React Native.
+- See details and rationale in `docs/2025-08-04-onboarding-submit-flow.md`.

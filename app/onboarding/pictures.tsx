@@ -1,7 +1,7 @@
 import CameraIcon from "@/assets/images/camera-icon.svg";
 import { OnboardingScreenLayout } from "@/components/layouts/OnboardingScreenLayout";
 import { Text } from "@/components/ui/text";
-import { useOnboardingStore } from "@/src/modules/onboarding/onboarding.store";
+import { useOnboardingStore } from "@/src/modules/onboarding/stores/onboarding.store";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
@@ -86,7 +86,7 @@ const AddYourPicturesScreen = () => {
     if (!hasPermission) return;
 
     const options: ImagePicker.ImagePickerOptions = {
-      mediaTypes: ['images'],
+      mediaTypes: ["images"],
       allowsEditing: true,
       aspect: [1, 1],
       quality: 0.8,
@@ -121,7 +121,9 @@ const AddYourPicturesScreen = () => {
   };
 
   const handleRemoveSecondaryPhoto = (index: number) => {
-    const updatedPhotos = secondaryPictures.filter((_, i) => i !== index);
+    const updatedPhotos = secondaryPictures.filter(
+      (_: any, i: number) => i !== index
+    );
     setSecondaryPictures(updatedPhotos);
   };
 

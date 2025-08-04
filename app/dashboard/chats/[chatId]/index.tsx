@@ -19,7 +19,7 @@ import {
 } from "@/src/modules/chat/services/message.service";
 import { useChatStore } from "@/src/modules/chat/stores/chat.store";
 import { useAuthUserProfile } from "@/src/modules/users/hooks/useAuthUserProfile";
-import formatMessageTime from "@/src/utils/time-formatter";
+import formatMessageTime from "@/src/utils/timeFormatter";
 import { MaterialIcons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useRef, useState } from "react";

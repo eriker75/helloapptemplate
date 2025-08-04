@@ -15,6 +15,32 @@ api.interceptors.request.use(
       config.headers = config.headers || {};
       config.headers.Authorization = `Bearer ${token}`;
     }
+    // Remove Content-Type for FormData to let axios set the correct boundary
+    if (
+      config.data &&
+      (typeof FormData !== "undefined" && config.data instanceof FormData)
+    ) {
+      if (config.headers && config.headers["Content-Type"]) {
+        delete config.headers["Content-Type"];
+      }
+      if (config.headers && config.headers["content-type"]) {
+        delete config.headers["content-type"];
+      }
+    }
+    // Extra log: show config for onboarding requests
+    if (
+      typeof config.url === "string" &&
+      config.url.includes("/onboarding")
+    ) {
+      console.log("[api.ts interceptor] Final Axios config for /onboarding:", {
+        url: config.url,
+        method: config.method,
+        headers: config.headers,
+        baseURL: config.baseURL,
+        dataType: typeof config.data,
+        data: config.data,
+      });
+    }
     return config;
   },
   (err) => {

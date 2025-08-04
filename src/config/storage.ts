@@ -1,5 +1,8 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
+/**
+ * AsyncStorage helpers
+ */
 export const CustomStorage = {
   getItem: async (key: string): Promise<string | null> => {
     try {

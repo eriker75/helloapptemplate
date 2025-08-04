@@ -1,6 +1,6 @@
 import { OnboardingScreenLayout } from "@/components/layouts/OnboardingScreenLayout";
 import { Pressable } from "@/components/ui/pressable";
-import { useOnboardingStore } from "@/src/modules/onboarding/onboarding.store";
+import { useOnboardingStore } from "@/src/modules/onboarding/stores/onboarding.store";
 import { useAuthUserProfileStore } from "@/src/modules/users/stores/auth-user-profile.store";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";

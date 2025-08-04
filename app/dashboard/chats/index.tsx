@@ -6,7 +6,7 @@ import { HStack } from "@/components/ui/hstack";
 import { Spinner } from "@/components/ui/spinner";
 import { Text } from "@/components/ui/text";
 import { VStack } from "@/components/ui/vstack";
-import formatMessageTime from "@/src/utils/time-formatter";
+import formatMessageTime from "@/src/utils/timeFormatter";
 import { useRouter } from "expo-router";
 import {
   ActivityIndicator,

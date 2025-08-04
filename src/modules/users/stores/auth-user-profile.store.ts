@@ -64,7 +64,7 @@ const initialAuthUserProfileState: AuthUserProfileState = {
     is_verified: 0,
     created_at: new Date().toISOString(),
     updated_at: null,
-    ageRangePreference: [18, 99],
+    ageRangePreference: [18, 118],
   },
   isLoading: false,
   isAuthenticated: false,

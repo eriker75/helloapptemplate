@@ -1,13 +1,8 @@
 import { Location } from "@/src/definitions/ineterfaces/Location.interface";
 import { create, StateCreator } from "zustand";
 import { immer } from "zustand/middleware/immer";
-import { useAuthUserProfileStore } from "../users/stores/auth-user-profile.store";
-import {
-  step1Schema,
-  step2Schema,
-  step3Schema,
-  step4Schema,
-} from "./onboarding.schemas";
+import { useAuthUserProfileStore } from "../../users/stores/auth-user-profile.store";
+import { step1Schema, step2Schema, step3Schema, step4Schema } from "../validators/onboarding.schemas";
 
 // --- State Interface ---
 export interface OnboardingState {
@@ -50,11 +45,11 @@ export interface OnboardingActions {
   // Utils
   reset: () => void;
   validateCurrentStep: (step: number) => Promise<boolean>;
-  submitOnboarding: () => Promise<void>;
+  // submitOnboarding removed: now handled by React Query mutation in useOnboardingSubmit hook
 }
 
 // --- Store Type ---
-export type OnboardingStoreType = OnboardingState & OnboardingActions;
+export type OnboardingStoreType = OnboardingState & Omit<OnboardingActions, "submitOnboarding">;
 
 // --- Initial State ---
 const initialOnboardingState: OnboardingState = {
@@ -159,30 +154,6 @@ const onboardingStoreCreator: StateCreator<
       console.log("Validation error:", error);
       return false;
     }
-  },
-
-  // Sending Data
-  submitOnboarding: async () => {
-    const state = get();
-    const authStore = useAuthUserProfileStore.getState();
-
-    // Convert onboarding data to user profile format
-    const profileUpdates = {
-      name: state.name,
-      alias: state.alias,
-      bio: state.bio,
-      birth_date: state.birth_date,
-      gender: state.gender === "1" ? 0 : state.gender === "2" ? 1 : 2,
-      interested_in: state.interestedIn,
-      avatar: state.mainPicture,
-      address: state.selectedAddress,
-      location: state.selectedLocation
-        ? JSON.stringify(state.selectedLocation)
-        : null,
-      is_onboarded: 1,
-    };
-
-    await authStore.updateUserProfile(profileUpdates);
   },
 });
 

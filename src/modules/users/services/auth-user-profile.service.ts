@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { OnboardingState } from "../../onboarding/onboarding.store";
 import { UpdateProfileData } from "../dtos/update-profile.dto";
+import { getProfileById } from "../repositories/profile.repository";
+import { OnboardingState } from "../../onboarding/stores/onboarding.store";
 import {
   getNearbyUsers,
   onboardUser,
@@ -29,8 +30,6 @@ export function useNearbyUsers(userId: string, radiusKm = 200) {
  *
  * @param userId - The ID of the user to fetch
  */
-import { getProfileById } from "../repositories/profile.repository";
-
 export function useUserProfile(profileId: string) {
   return useQuery({
     queryKey: ["user-profile", profileId],

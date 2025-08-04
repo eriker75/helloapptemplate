@@ -6,12 +6,12 @@ import { OnboardingScreenLayout } from "@/components/layouts/OnboardingScreenLay
 import { HStack, Text, VStack } from "@/components/ui";
 import { GENDER_TYPES } from "@/src/definitions/constants/GENDER_TYPES";
 import { INTEREST_TYPES } from "@/src/definitions/constants/INTEREST_TYPES";
-import { useOnboardingStore } from "@/src/modules/onboarding/onboarding.store";
 import CustomInputRangeSlider from "@/components/elements/CustomInputRangeSlider";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import { Alert, ScrollView } from "react-native";
+import { useOnboardingStore } from "@/src/modules/onboarding/stores/onboarding.store";
 
 const BasicInfoScreen = () => {
   const alias = useOnboardingStore((state) => state.alias);
@@ -30,11 +30,16 @@ const BasicInfoScreen = () => {
   const [isValidStep, setIsValidStep] = useState(false);
 
   // Age range state
-  const globalAgeRange = useOnboardingStore((state) => state.ageRangePreference);
-  const setAgeRange = useOnboardingStore((state) => state.setAgeRangePreference);
+  const globalAgeRange = useOnboardingStore(
+    (state) => state.ageRangePreference
+  );
+  const setAgeRange = useOnboardingStore(
+    (state) => state.setAgeRangePreference
+  );
 
   // Local state for slider UI
-  const [ageRange, setLocalAgeRange] = useState<[number, number]>(globalAgeRange);
+  const [ageRange, setLocalAgeRange] =
+    useState<[number, number]>(globalAgeRange);
 
   // Sync local state with global on mount or global change
   useEffect(() => {

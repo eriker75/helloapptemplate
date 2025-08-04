@@ -26,4 +26,8 @@ export interface UserProfile {
   created_at: string; // Profile Creation Date
   updated_at?: string | null; // Profile Last Update Date
   ageRangePreference?: [number, number] | null;
+  /**
+   * Array of URLs for secondary profile images (for carousel)
+   */
+  secondary_images?: string[] | null;
 }
