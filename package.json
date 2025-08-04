@@ -20,6 +20,7 @@
     "@gluestack-ui/overlay": "^0.1.22",
     "@gluestack-ui/pressable": "^0.1.23",
     "@gluestack-ui/progress": "^0.1.18",
+    "@gluestack-ui/slider": "^0.1.32",
     "@gluestack-ui/spinner": "^0.1.15",
     "@gluestack-ui/textarea": "^0.1.25",
     "@gluestack-ui/toast": "^1.0.9",
@@ -68,6 +69,7 @@
     "react-native-keychain": "^10.0.0",
     "react-native-modal-datetime-picker": "^18.0.0",
     "react-native-paper": "^5.14.5",
+    "react-native-range-slider-expo": "^1.4.3",
     "react-native-reanimated": "~3.17.4",
     "react-native-reanimated-carousel": "^4.0.2",
     "react-native-safe-area-context": "5.4.0",
@@ -77,6 +79,7 @@
     "react-native-web": "~0.20.0",
     "react-native-webview": "13.13.5",
     "undefined": "\\",
+    "use-debounce": "^10.0.5",
     "zod": "^3.25.74",
     "zustand": "^5.0.6"
   },

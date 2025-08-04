@@ -43,3 +43,13 @@
   - Updated `src/modules/users/hooks/useGoogleLogin.ts` to use backend and set user profile from response.
   - Added task doc: `docs/2025-08-04-google-login-integration.md`.
 - The app now authenticates users via Google and backend, replacing the previous mock/demo logic.
+
+## 2025-08-04 (Range Slider for Onboarding)
+
+- Created a reusable double-thumb range slider component for age selection in onboarding:
+  - File: `components/elements/CustomInputRangeSlider.tsx`
+  - Uses `react-native-range-slider-expo` for double-thumb support and styled to match the onboarding design.
+  - Stateless, receives `[number, number]` value and `onChange` handler as props.
+  - Fully documented and reusable for other range selection needs.
+- Documented the task and plan in `docs/2025-08-04-range-slider-onboarding.md`.
+- Ready for integration in the onboarding form (`basicinfo.tsx`).

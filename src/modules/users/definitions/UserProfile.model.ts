@@ -25,4 +25,5 @@ export interface UserProfile {
   is_verified?: number | null; // 1 verified, 0 NOT verified
   created_at: string; // Profile Creation Date
   updated_at?: string | null; // Profile Last Update Date
+  ageRangePreference?: [number, number] | null;
 }

@@ -1,4 +1,3 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { create, StateCreator } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
@@ -65,6 +64,7 @@ const initialAuthUserProfileState: AuthUserProfileState = {
     is_verified: 0,
     created_at: new Date().toISOString(),
     updated_at: null,
+    ageRangePreference: [18, 99],
   },
   isLoading: false,
   isAuthenticated: false,

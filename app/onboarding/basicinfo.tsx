@@ -7,6 +7,8 @@ import { HStack, Text, VStack } from "@/components/ui";
 import { GENDER_TYPES } from "@/src/definitions/constants/GENDER_TYPES";
 import { INTEREST_TYPES } from "@/src/definitions/constants/INTEREST_TYPES";
 import { useOnboardingStore } from "@/src/modules/onboarding/onboarding.store";
+import CustomInputRangeSlider from "@/components/elements/CustomInputRangeSlider";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import { Alert, ScrollView } from "react-native";
@@ -26,6 +28,18 @@ const BasicInfoScreen = () => {
     (state) => state.validateCurrentStep
   );
   const [isValidStep, setIsValidStep] = useState(false);
+
+  // Age range state
+  const globalAgeRange = useOnboardingStore((state) => state.ageRangePreference);
+  const setAgeRange = useOnboardingStore((state) => state.setAgeRangePreference);
+
+  // Local state for slider UI
+  const [ageRange, setLocalAgeRange] = useState<[number, number]>(globalAgeRange);
+
+  // Sync local state with global on mount or global change
+  useEffect(() => {
+    setLocalAgeRange(globalAgeRange);
+  }, [globalAgeRange]);
 
   const handleGenderSelect = (value: string) => {
     setGender(value);
@@ -71,7 +85,7 @@ const BasicInfoScreen = () => {
   }, [alias, birthDate, aboutMe, gender, interestedIn, validateCurrentStep]);
 
   const handleContinue = async () => {
-    console.log({ alias, birthDate, aboutMe, gender, interestedIn });
+    console.log({ alias, birthDate, aboutMe, gender, interestedIn, ageRange });
     const isValid = await validateCurrentStep(2);
     if (isValid) {
       router.push("/onboarding/pictures");
@@ -179,6 +193,30 @@ const BasicInfoScreen = () => {
               />
             </HStack>
           </VStack>
+        </VStack>
+
+        {/* Age Range Slider Section */}
+        <VStack className="mt-8">
+          <HStack className="justify-between items-center mb-2">
+            <Text className="font-bold text-lg text-[#1B1B1F]">
+              Rango de edad
+            </Text>
+            <Text className="text-[#35313D] text-base font-medium">
+              {ageRange[1] >= 118
+                ? `${ageRange[0]} a ∞ años`
+                : `${ageRange[0]} a ${ageRange[1]} años`}
+            </Text>
+          </HStack>
+          <CustomInputRangeSlider
+            value={ageRange}
+            onChange={setLocalAgeRange}
+            min={18}
+            max={118}
+          />
+          <HStack className="justify-between items-center mt-1 px-1">
+            <Text className="text-[#35313D] text-base font-medium">18</Text>
+            <MaterialCommunityIcons name="infinity" size={22} color="#35313D" />
+          </HStack>
         </VStack>
       </ScrollView>
     </OnboardingScreenLayout>
