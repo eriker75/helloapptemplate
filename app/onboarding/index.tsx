@@ -15,6 +15,7 @@ import {
 
 const StartOnboardingScreen = () => {
   const userProfile = useAuthUserProfileStore((state) => state.userProfile);
+  console.log(JSON.stringify({ userProfile }, null, 2));
 
   useEffect(() => {
     if (userProfile?.is_onboarded === 1) {

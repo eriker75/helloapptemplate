@@ -35,3 +35,11 @@
 - Fixed error: "GestureDetector must be used as a descendant of GestureHandlerRootView."
 - Updated `app/_layout.tsx` to wrap the app in `GestureHandlerRootView` from `react-native-gesture-handler` as required by the library.
 - See `docs/2025-08-02-gesture-handler-rootview.md` for details and rationale.
+## 2025-08-04 (Google Login Integration)
+
+- Implemented real Google login flow:
+  - Created `src/modules/users/repositories/auth.repository.ts` to send Google id token to backend.
+  - Created `src/modules/users/services/auth.service.ts` with React Query mutation for Google login.
+  - Updated `src/modules/users/hooks/useGoogleLogin.ts` to use backend and set user profile from response.
+  - Added task doc: `docs/2025-08-04-google-login-integration.md`.
+- The app now authenticates users via Google and backend, replacing the previous mock/demo logic.
