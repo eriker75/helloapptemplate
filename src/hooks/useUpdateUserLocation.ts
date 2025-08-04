@@ -16,28 +16,49 @@ export function useUpdateUserLocation() {
     isLoading: isLoadingAuth,
   } = useAuthUserProfile();
 
-  const updateUserProfileStore = useAuthUserProfileStore((state) => state.updateUserProfile);
-  const setCurrentLocation = useAuthUserProfileStore((state) => state.setCurrentLocation);
-  const checkLocationPermission = useAuthUserProfileStore((state) => state.checkLocationPermission);
-  const requestLocationPermission = useAuthUserProfileStore((state) => state.requestLocationPermission);
+  const updateUserProfileStore = useAuthUserProfileStore(
+    (state) => state.updateUserProfile
+  );
+  const setCurrentLocation = useAuthUserProfileStore(
+    (state) => state.setCurrentLocation
+  );
+  const checkLocationPermission = useAuthUserProfileStore(
+    (state) => state.checkLocationPermission
+  );
+  const requestLocationPermission = useAuthUserProfileStore(
+    (state) => state.requestLocationPermission
+  );
 
   const updateProfileMutation = useUpdateProfile(user?.id || "");
 
   const updateLocation = useCallback(async () => {
     console.log("[useUpdateUserLocation] updateLocation called");
     console.log("[useUpdateUserLocation] user:", user);
-    console.log("[useUpdateUserLocation] isAuthenticated:", isAuthenticated, "isLoadingAuth:", isLoadingAuth);
+    console.log(
+      "[useUpdateUserLocation] isAuthenticated:",
+      isAuthenticated,
+      "isLoadingAuth:",
+      isLoadingAuth
+    );
 
     if (!isAuthenticated || !user?.id || isLoadingAuth) {
-      console.log("[useUpdateUserLocation] Not authenticated or user not loaded, aborting");
+      console.log(
+        "[useUpdateUserLocation] Not authenticated or user not loaded, aborting"
+      );
       return;
     }
     try {
       let permissionStatus = await checkLocationPermission();
-      console.log("[useUpdateUserLocation] checkLocationPermission:", permissionStatus);
+      console.log(
+        "[useUpdateUserLocation] checkLocationPermission:",
+        permissionStatus
+      );
       if (permissionStatus !== LocationPermissionStatuses.GRANTED) {
         permissionStatus = await requestLocationPermission();
-        console.log("[useUpdateUserLocation] requestLocationPermission:", permissionStatus);
+        console.log(
+          "[useUpdateUserLocation] requestLocationPermission:",
+          permissionStatus
+        );
       }
       if (permissionStatus !== LocationPermissionStatuses.GRANTED) {
         console.log("[useUpdateUserLocation] Permission not granted, aborting");
@@ -46,12 +67,18 @@ export function useUpdateUserLocation() {
 
       const location = await Location.getCurrentPositionAsync({});
       const { latitude, longitude } = location.coords;
-      console.log("[useUpdateUserLocation] Device location:", latitude, longitude);
+      console.log(
+        "[useUpdateUserLocation] Device location:",
+        latitude,
+        longitude
+      );
 
       const prevLat = user.latitude;
       const prevLng = user.longitude;
       // Siempre actualiza la ubicación en la base de datos y el store si tienes permisos y puedes obtener la ubicación
-      console.log("[useUpdateUserLocation] Forzando actualización de ubicación en DB y store con datos del dispositivo...");
+      console.log(
+        "[useUpdateUserLocation] Forzando actualización de ubicación en DB y store con datos del dispositivo..."
+      );
       await updateProfileMutation.mutateAsync({
         latitude,
         longitude,

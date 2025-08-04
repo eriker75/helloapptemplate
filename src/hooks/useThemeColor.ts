@@ -14,3 +14,4 @@ export function useThemeColor(
     return GLOBAL_COLORS[theme][colorName];
   }
 }
+
