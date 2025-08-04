@@ -1,7 +1,6 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { View, StyleSheet, LayoutChangeEvent } from "react-native";
-import { Box, Text, HStack } from "../ui";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { Box } from "../ui";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -11,6 +10,7 @@ import Animated, {
 import {
   PanGestureHandler,
   PanGestureHandlerGestureEvent,
+  State as GestureState,
 } from "react-native-gesture-handler";
 
 interface CustomInputRangeSliderProps {
@@ -34,24 +34,38 @@ const CustomInputRangeSlider: React.FC<CustomInputRangeSliderProps> = ({
   max = DEFAULT_MAX,
 }) => {
   const [trackWidth, setTrackWidth] = React.useState(0);
+  const [internalRange, setInternalRange] = React.useState<[number, number]>(value);
+
+  // Sync internal state with prop
+  useEffect(() => {
+    setInternalRange(value);
+  }, [value[0], value[1]]);
 
   // Shared values for thumb positions
   const leftThumbX = useSharedValue(0);
   const rightThumbX = useSharedValue(0);
 
-  // Sync thumbs with value prop
+  // Map value to position in px
+  const valueToPosition = (val: number) => {
+    if (max === min) return 0;
+    return ((val - min) / (max - min)) * (trackWidth - THUMB_SIZE);
+  };
+
+  // Map px to value
+  const positionToValue = (pos: number) => {
+    if (trackWidth <= THUMB_SIZE) return min;
+    const ratio = pos / (trackWidth - THUMB_SIZE);
+    return Math.round(ratio * (max - min) + min);
+  };
+
+  // Sync thumbs with internal state
   useEffect(() => {
     if (trackWidth > 0) {
-      // Map value to position in px
-      const valueToPosition = (val: number) => {
-        if (max === min) return 0;
-        return ((val - min) / (max - min)) * (trackWidth - THUMB_SIZE);
-      };
-      leftThumbX.value = valueToPosition(value[0]);
-      rightThumbX.value = valueToPosition(value[1]);
+      leftThumbX.value = valueToPosition(internalRange[0]);
+      rightThumbX.value = valueToPosition(internalRange[1]);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [value, trackWidth, min, max]);
+  }, [internalRange, trackWidth, min, max]);
 
   // Gesture handlers (all math inside worklet)
   const leftGesture = useAnimatedGestureHandler<PanGestureHandlerGestureEvent, { startX: number; trackWidth: number; min: number; max: number; rightX: number }>({
@@ -73,6 +87,13 @@ const CustomInputRangeSlider: React.FC<CustomInputRangeSliderProps> = ({
       let newValL = Math.round(ratioL * (ctx.max - ctx.min) + ctx.min);
       let newValR = Math.round(ratioR * (ctx.max - ctx.min) + ctx.min);
 
+      runOnJS(setInternalRange)([newValL, newValR]);
+    },
+    onEnd: (_, ctx) => {
+      let ratioL = leftThumbX.value / (ctx.trackWidth - THUMB_SIZE);
+      let ratioR = ctx.rightX / (ctx.trackWidth - THUMB_SIZE);
+      let newValL = Math.round(ratioL * (ctx.max - ctx.min) + ctx.min);
+      let newValR = Math.round(ratioR * (ctx.max - ctx.min) + ctx.min);
       runOnJS(onChange)([newValL, newValR]);
     },
   });
@@ -96,6 +117,13 @@ const CustomInputRangeSlider: React.FC<CustomInputRangeSliderProps> = ({
       let newValL = Math.round(ratioL * (ctx.max - ctx.min) + ctx.min);
       let newValR = Math.round(ratioR * (ctx.max - ctx.min) + ctx.min);
 
+      runOnJS(setInternalRange)([newValL, newValR]);
+    },
+    onEnd: (_, ctx) => {
+      let ratioL = ctx.leftX / (ctx.trackWidth - THUMB_SIZE);
+      let ratioR = rightThumbX.value / (ctx.trackWidth - THUMB_SIZE);
+      let newValL = Math.round(ratioL * (ctx.max - ctx.min) + ctx.min);
+      let newValR = Math.round(ratioR * (ctx.max - ctx.min) + ctx.min);
       runOnJS(onChange)([newValL, newValR]);
     },
   });
