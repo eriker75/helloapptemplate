@@ -21,7 +21,19 @@ const { width } = Dimensions.get("window");
 const PROFILE_IMAGE = require("@/assets/images/profile-bg.jpg");
 const AVATAR_IMAGE = require("@/assets/images/avatar-placeholder.png");
 
+import { useAuthUserProfileStore } from "@/src/modules/users/stores/auth-user-profile.store";
+import { useRouter } from "expo-router";
+import { useCallback } from "react";
+
 export default function ProfileScreen() {
+  const router = useRouter();
+  const clearAuthData = useAuthUserProfileStore((state) => state.clearAuthData);
+
+  const handleLogout = useCallback(async () => {
+    await clearAuthData();
+    router.replace("/login");
+  }, [clearAuthData, router]);
+
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
@@ -66,10 +78,9 @@ export default function ProfileScreen() {
       </ScrollView>
       {/* Bottom button */}
       <View style={styles.bottomButtonContainer}>
-        <Button style={styles.bottomButton}>
-          <ButtonIcon as={ChatBubbleIcon} />
+        <Button style={styles.bottomButton} onPress={handleLogout}>
           <ButtonText style={styles.bottomButtonText}>
-            ¡Hola, Alex! 👋
+            Cerrar sesión
           </ButtonText>
         </Button>
       </View>
@@ -172,12 +183,12 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
   bottomButton: {
-    backgroundColor: "#7EE6FD",
+    backgroundColor: "#F35B5B",
     borderRadius: 16,
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 32,
-    paddingVertical: 12,
+    paddingVertical: 0,
     elevation: 2,
     shadowColor: "#000",
     shadowOpacity: 0.08,

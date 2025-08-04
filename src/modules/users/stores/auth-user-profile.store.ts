@@ -1,20 +1,34 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { create, StateCreator } from "zustand";
+import { persist, createJSONStorage } from "zustand/middleware";
+import { immer } from "zustand/middleware/immer";
+import { CustomStorage } from "@/src/config/storage";
 import { LocationPermissionStatuses } from "@/src/definitions/enums/LocationPermissionStatuses.enum";
 import { Location } from "@/src/definitions/ineterfaces/Location.interface";
 import {
   checkLocationPermission,
   requestLocationPermission,
 } from "@/src/utils/location";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { create } from "zustand";
 import { UserProfile } from "../definitions/UserProfile.model";
 
-interface AuthUserProfileStoreState {
+export interface AuthUserProfileState {
   userProfile: UserProfile | null;
   isLoading: boolean;
   isAuthenticated: boolean;
   error: Error | null;
   locationStatus: LocationPermissionStatuses;
   currentLocation: Location | null;
+}
+
+export interface AuthUserProfileActions {
+  setTokens: (params: {
+    accessToken: string;
+    refreshToken: string;
+    userId: string;
+  }) => void;
+  clearTokens: () => void;
+  getAccessToken: () => string | null;
+  getRefreshToken: () => string | null;
 
   setAuthUserProfileData: (userProfile: UserProfile | null) => Promise<void>;
   loadAuthData: () => Promise<void>;
@@ -26,124 +40,178 @@ interface AuthUserProfileStoreState {
   setCurrentLocation: (location: Location | null) => void;
 }
 
-export const useAuthUserProfileStore = create<AuthUserProfileStoreState>(
-  (set, get) => ({
-    userProfile: {
-      id: "1",
-      name: "Alice Demo",
-      email: "alice.demo@example.com",
-      profile_id: "1",
-      alias: "alice123",
-      bio: "Loves hiking and coffee.",
-      birth_date: "1995-06-15",
-      gender: 0,
-      interested_in: ["1"],
-      avatar: "",
-      address: "123 Main St",
-      preferences: null,
-      last_online: null,
-      location: null,
-      is_onboarded: 1,
-      status: 1,
-      latitude: 10.5,
-      longitude: -66.9,
-      is_verified: 1,
-      created_at: new Date().toISOString(),
-      updated_at: null,
-    },
-    isLoading: false,
-    isAuthenticated: true,
-    error: null,
-    locationStatus: LocationPermissionStatuses.CHECKING,
-    currentLocation: null,
+const initialAuthUserProfileState: AuthUserProfileState = {
+  userProfile: {
+    id: "",
+    name: "",
+    email: "",
+    accessToken: "",
+    refreshToken: "",
+    profile_id: "",
+    alias: "",
+    bio: "",
+    birth_date: "",
+    gender: 0,
+    interested_in: [],
+    avatar: "",
+    address: "",
+    preferences: null,
+    last_online: null,
+    location: null,
+    is_onboarded: 0,
+    status: 0,
+    latitude: 0,
+    longitude: 0,
+    is_verified: 0,
+    created_at: new Date().toISOString(),
+    updated_at: null,
+  },
+  isLoading: false,
+  isAuthenticated: false,
+  error: null,
+  locationStatus: LocationPermissionStatuses.CHECKING,
+  currentLocation: null,
+};
 
-    setAuthUserProfileData: async (userProfile) => {
-      set({ isLoading: true });
-      try {
-        if (userProfile) {
-          await AsyncStorage.setItem(
-            "userProfile",
-            JSON.stringify(userProfile)
-          );
-        } else {
-          await AsyncStorage.removeItem("userProfile");
-        }
+export type AuthUserProfileStoreStore = AuthUserProfileState &
+  AuthUserProfileActions;
 
-        set({
-          userProfile,
-          isAuthenticated: !!userProfile,
-          isLoading: false,
-          error: null,
-        });
-      } catch (error) {
-        set({
-          error: error as Error,
-          isLoading: false,
-        });
-        throw error;
-      }
-    },
+const authUserProfileStoreCreator: StateCreator<
+  AuthUserProfileStoreStore,
+  [["zustand/immer", never], ["zustand/persist", unknown]],
+  [],
+  AuthUserProfileStoreStore
+> = (set, get) => ({
+  ...initialAuthUserProfileState,
 
-    loadAuthData: async () => {
-      set({ isLoading: true });
-      try {
-        const userProfileStr = await AsyncStorage.getItem("userProfile");
-        const userProfile = userProfileStr ? JSON.parse(userProfileStr) : null;
+  setAuthUserProfileData: async (userProfile) => {
+    set((state) => {
+      state.isLoading = true;
+    });
+    set((state) => {
+      state.userProfile = userProfile;
+      state.isAuthenticated = !!userProfile;
+      state.isLoading = false;
+      state.error = null;
+    });
+  },
 
-        set({
-          userProfile,
-          isAuthenticated: !!userProfile,
-          isLoading: false,
-          error: null,
-        });
-      } catch (error) {
-        set({
-          error: error as Error,
-          isLoading: false,
-        });
-        throw error;
-      }
-    },
+  setTokens: ({ accessToken, refreshToken, userId }) => {
+    const current = get().userProfile;
+    if (current) {
+      const updated = {
+        ...current,
+        accessToken,
+        refreshToken,
+        id: String(userId),
+      };
+      set((state) => {
+        state.userProfile = updated;
+        state.isAuthenticated = true;
+        state.isLoading = false;
+      });
+    }
+  },
 
-    clearAuthData: async () => {
-      try {
-        await AsyncStorage.removeItem("userProfile");
-        set({
-          userProfile: null,
-          isAuthenticated: false,
-          isLoading: false,
-          error: null,
-        });
-      } catch (error) {
-        set({
-          error: error as Error,
-          isLoading: false,
-        });
-      }
-    },
+  clearTokens: () => {
+    const current = get().userProfile;
+    if (current) {
+      const updated = {
+        ...current,
+        accessToken: "",
+        refreshToken: "",
+      };
+      set((state) => {
+        state.userProfile = updated;
+        state.isAuthenticated = false;
+        state.isLoading = false;
+      });
+    }
+  },
 
-    updateUserProfile: (updates) => {
-      const current = get().userProfile;
-      const updated = current ? { ...current, ...updates } : null;
+  getAccessToken: () => {
+    const userProfile = get().userProfile;
+    return userProfile ? userProfile.accessToken : null;
+  },
 
-      set({ userProfile: updated });
-      if (updated) {
-        AsyncStorage.setItem("userProfile", JSON.stringify(updated));
-      }
-    },
+  getRefreshToken: () => {
+    const userProfile = get().userProfile;
+    return userProfile ? userProfile.refreshToken : null;
+  },
 
-    requestLocationPermission: async () => {
-      const status = await requestLocationPermission();
-      set({ locationStatus: status });
-      return status;
-    },
+  loadAuthData: async () => {
+    set((state) => {
+      state.isLoading = true;
+    });
+    try {
+      set((state) => {
+        state.isLoading = false;
+        state.error = null;
+      });
+    } catch (error) {
+      set((state) => {
+        state.error = error as Error;
+        state.isLoading = false;
+      });
+      throw error;
+    }
+  },
 
-    checkLocationPermission: async () => {
-      const status = await checkLocationPermission();
-      set({ locationStatus: status });
-      return status;
-    },
+  clearAuthData: async () => {
+    try {
+      set((state) => {
+        state.userProfile = null;
+        state.isAuthenticated = false;
+        state.isLoading = false;
+        state.error = null;
+      });
+    } catch (error) {
+      set((state) => {
+        state.error = error as Error;
+        state.isLoading = false;
+      });
+    }
+  },
 
-    setCurrentLocation: (location) => set({ currentLocation: location }),
-  })
+  updateUserProfile: (updates) => {
+    const current = get().userProfile;
+    const updated = current ? { ...current, ...updates } : null;
+    set((state) => {
+      state.userProfile = updated;
+    });
+  },
+
+  requestLocationPermission: async () => {
+    const status = await requestLocationPermission();
+    set((state) => {
+      state.locationStatus = status;
+    });
+    return status;
+  },
+
+  checkLocationPermission: async () => {
+    const status = await checkLocationPermission();
+    set((state) => {
+      state.locationStatus = status;
+    });
+    return status;
+  },
+
+  setCurrentLocation: (location) =>
+    set((state) => {
+      state.currentLocation = location;
+    }),
+});
+
+export const useAuthUserProfileStore = create<AuthUserProfileStoreStore>()(
+  immer(
+    persist(authUserProfileStoreCreator, {
+      name: "auth-user-profile-store",
+      storage: createJSONStorage(() => CustomStorage),
+      partialize: (state) => ({
+        userProfile: state.userProfile,
+        isAuthenticated: state.isAuthenticated,
+      }),
+    })
+  )
 );

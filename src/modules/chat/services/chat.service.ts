@@ -22,7 +22,7 @@ export function useUserChats(userId: string) {
     enabled: !!userId,
     refetchOnMount: true,
     refetchOnReconnect: true,
-    //refetchInterval: 3000,
+    refetchInterval: 500,
   });
 }
 

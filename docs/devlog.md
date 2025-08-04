@@ -1,6 +1,9 @@
 # Development Log
 
 ## 2025-08-02
+- Replaced the "¡Hola, Alex! 👋" button in `app/dashboard/profile/index.tsx` with a "Cerrar sesión" button.
+  - The new button calls `clearAuthData` from the user profile store and redirects to `/login` using the router.
+  - Task documented and completed in `docs/2025-08-04-profile-logout-button.md`.
 
 - Project documentation established: `readme.md`, `docs/2025-08-02-supabase-migration.md`, and this devlog.
 - Migration plan to remove Supabase logic and use mock/demo data created.

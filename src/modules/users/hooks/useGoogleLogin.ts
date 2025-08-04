@@ -30,6 +30,8 @@ const DEMO_USER_PROFILE = {
   is_verified: 1,
   created_at: new Date().toISOString(),
   updated_at: null,
+  accessToken: "string",
+  refreshToken: "string"
 };
 
 if (!process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID) {
